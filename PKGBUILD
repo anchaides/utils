@@ -1,6 +1,6 @@
 pkgname=anchaides-utils
 pkgver=1.1
-pkgrel=0
+pkgrel=1
 metaname=utils-meta 
 metatag=1.03
 # https://github.com/anchaides/utils-meta/archive/refs/tags/v1.03.tar.gz
