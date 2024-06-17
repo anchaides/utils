@@ -10,7 +10,7 @@ url="https://github.com/anchaides/utils"
 license=('GPL')
 source=("$metaname-v$metatag.tar.gz::https://github.com/anchaides/utils-meta/archive/refs/tags/v$metatag.tar.gz"
 )
-sha256sums=('SKIP' 'SKIP') 
+sha256sums=('d0bd25ea1dda75ca4b80a555d19daaca7f6ef4d21e2f0a5e46a387e5df8c6f0d')
 
 build() {
     cd $srcdir 
