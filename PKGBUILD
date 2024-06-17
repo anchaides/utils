@@ -1,4 +1,4 @@
-pkgname=utils
+pkgname=anchaides-utils
 pkgver=0.1
 pkgrel=0
 metaname=utils-meta 
@@ -17,7 +17,14 @@ build() {
     make 
 }
 
-package() {
-    install -Dm755 $pkgdir/bin/* "$pkgdir/usr/bin/" 
+package() { 
+
+    for bin in $srcdir/../bin/*; do 
+        if [[ -f "$bin" ]]; then
+             echo install -Dm755 $bin  "$pkgdir/usr/bin/${bin##*/}" 
+             install -Dm755 $bin  "$pkgdir/usr/bin/${bin##*/}" 
+
+        fi 
+    done 
 }
 
