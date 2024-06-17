@@ -1,0 +1,54 @@
+#!/bin/bash
+
+# Function to convert base 10 to base 26
+base10_to_base26() {
+    num=$1
+    characters="abcdefghijklmnopqrstuvwxyz"
+    base26=""
+    if [ "$num" -eq 0 ]; then
+        base26="a"
+    else
+        while [ "$num" -gt 0 ]; do
+            remainder=$((num % 26))
+            num=$((num / 26))
+            # Extract the character corresponding to the remainder
+            char=$(echo "$characters" | cut -c $((remainder+1)))
+            base26="$char$base26"
+        done
+    fi
+
+    # Prepend 'a' if base26 is a single character
+    if [ ${#base26} -eq 1 ]; then
+        base26="a${base26}"
+    fi
+
+    echo "$base26"
+}
+
+# Function to encode the current timestamp using base 26 encoding
+encode_current_timestamp_base26() {
+    # Get current timestamp components
+    year=$(date +%Y)
+    month=$(date +%m)
+    day=$(date +%d)
+    hour=$(date +%H)
+    minute=$(date +%M)
+    second=$(date +%S)
+
+    # Encode each component
+    encoded_year=$(base10_to_base26 $year)
+    encoded_month=$(base10_to_base26 $((10#$month)))  # Convert to decimal to avoid leading zero issues
+    encoded_day=$(base10_to_base26 $((10#$day)))      # Convert to decimal to avoid leading zero issues
+    encoded_hour=$(base10_to_base26 $((10#$hour)))    # Convert to decimal to avoid leading zero issues
+    encoded_minute=$(base10_to_base26 $((10#$minute))) # Convert to decimal to avoid leading zero issues
+    encoded_second=$(base10_to_base26 $((10#$second))) # Convert to decimal to avoid leading zero issues
+
+    # Combine the encoded parts
+    encoded_timestamp="${encoded_year}${encoded_month}${encoded_day}-${encoded_hour}${encoded_minute}${encoded_second}"
+    echo "$encoded_timestamp"
+}
+
+# Get the encoded current timestamp
+encoded_current_timestamp=$(encode_current_timestamp_base26)
+echo "$encoded_current_timestamp"
+

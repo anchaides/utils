@@ -1,0 +1,69 @@
+#!/bin/bash
+
+# Default values
+length=13
+include_special=1
+mix_case=1
+
+# Process command-line options
+while getopts "n:sc" opt; do
+  case $opt in
+    n) length="$OPTARG" ;;
+    s) include_special=0 ;;
+    c) mix_case=0 ;;
+    \?) echo "Invalid option: -$OPTARG" >&2; exit 1 ;;
+    :) echo "Option -$OPTARG requires an argument." >&2; exit 1 ;;
+  esac
+done
+
+# Function to generate a random password
+generate_password() {
+    local l=$1
+    local special=$2
+    local mixed=$3
+    local char_class="A-Za-z"
+
+    # check minimal size is respected 
+    if [[ $l -lt 8  ]]; then
+        echo "minimum size = 8" 
+        return -1 
+    fi 
+    # Include special characters if not disabled
+    if [[ $special -eq 1 ]]; then
+        spec_chars='\!\"\#\$'
+        local schars=$(cat /dev/urandom | tr -dc "$spec_chars" | fold -w 1 | head -n 1)
+    fi
+
+    local numb_chars="0-9"
+    local nchars=$(cat /dev/urandom | tr -dc "$numb_chars" | fold -w 2 | head -n 1 )
+
+    
+     
+    # Generate the initial password
+    local init_pass=$(cat /dev/urandom | tr -dc "$char_class" | fold -w $((l - 3 )) | head -n 1)
+
+    echo "testing $init_pass"
+    # Ensure mixed case if not disabled
+    if [[ $mixed -eq 1 ]]; then
+        # Ensuring at least one uppercase and one lowercase
+        local upper=$(cat /dev/urandom | tr -dc 'A-Z' | fold -w 1 | head -n 1)
+        local lower=$(cat /dev/urandom | tr -dc 'a-z' | fold -w 1 | head -n 1)
+        echo "pass is $pass" 
+        pass=$(echo "$init_pass" | sed "s/[A-Z]/$upper/1" | sed "s/[a-z]/$lower/1")
+    fi
+
+    pass+=${nchars:-}${schars:-}
+    #scramble the password
+
+
+    echo "pass is $pass"
+    IFS= read -r -a char_array <<< "$(echo $pass )"
+
+    # Shuffle the array using shuf and collapse back to a string
+    shuffled_pass=$(printf "%s\n" "$pass" | fold -w1 | shuf | tr -d '\n')
+    echo $shuffled_pass 
+}
+
+# Generate and print the password
+generate_password $length $include_special $mix_case
+

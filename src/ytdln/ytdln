@@ -1,0 +1,164 @@
+#!/usr/bin/python
+
+
+import os 
+import re 
+import sys 
+import logging
+import argparse 
+import subprocess
+
+class Popen (subprocess.Popen): 
+    @property 
+    def argstr(self):
+        return ' '.join(map(str,self.args)) 
+
+class LevelFilter(logging.Filter):
+    def __init__(self, levels):
+        self.levels = levels
+
+    def filter(self, record):
+        return record.levelno in self.levels
+
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description="Calls Yt-dlp ffmpeg with the most commonly usedf parameters.")
+    parser.add_argument('-u', '--url', type=str, help='YouTube URL', required=True)
+    parser.add_argument('-t', '--time-range',type=str, help='Timerange in format hh:mm:ss-hh:mm:ss', required=False)
+    parser.add_argument('-o','--output',type=str, help='Output filename -- Default: output', required=False, default='output') 
+    parser.add_argument('-d','--debug', action='store_true',help='Enable debug logging') 
+    parser.add_argument('-k','--keep-video', action='store_true',help='Keep intermediate files, for DEBUG purposes') 
+    parser.add_argument('-v','--verbose', action='store_true',help='Increase log verbosity') 
+
+    print("Que vaina?") 
+    args = parser.parse_args() 
+
+    logging.basicConfig(level=logging.NOTSET) 
+    logger = logging.getLogger('ytdln') 
+    
+    inffilter = LevelFilter([logging.INFO, logging.DEBUG])
+    errfilter = LevelFilter([logging.WARNING, logging.ERROR, logging.CRITICAL])
+
+    logStreamHandler = logging.StreamHandler(sys.stdout)
+    logStreamHandler.addFilter(inffilter) 
+
+    logStreamHStderr = logging.StreamHandler() 
+    logStreamHStderr.addFilter(errfilter) 
+    logger.setLevel(logging.DEBUG)
+
+
+    logStreamHStderr.setFormatter(logging.Formatter('[%(levelname)s] - %(asctime)s %(message)s'))
+
+    if args.debug:
+        logStreamHandler.setLevel(logging.DEBUG) 
+        logStreamHandler.setFormatter(logging.Formatter('[%(levelname)s] -%(asctime)s %(message)s'))
+    else:
+        logStreamHandler.setLevel(logging.INFO) 
+        logStreamHandler.setFormatter(logging.Formatter('%(message)s'))
+
+    logger.addHandler(logStreamHandler) 
+    logger.addHandler(logStreamHStderr)  
+
+    short_date = Popen(['short_date'],
+                        stdout=subprocess.PIPE,
+                        universal_newlines=True)
+    logging.info(f"Executing: {short_date.argstr}")
+    
+    for line in short_date.stdout.readlines():
+        Date = re.sub(r'\n','',line)
+    
+
+    fTemp = f"/tmp/tydln-{Date}.mp4" 
+    logging.debug(f"Intermediate log file: {fTemp}")
+
+    cmd1 = list() 
+
+    cmd1.append('yt-dlp')
+    
+    if args.verbose: 
+        cmd1.append('-v')
+
+    cmd1+= ['-f',f'bv*[height<=720]+ba']
+
+    
+    if args.time_range is not None:
+        m = re.match(r'(?:(?P<sh>\d+):)?(?P<sm>\d+):(?P<ss>\d+)-(?:(?P<eh>\d+):)?(?P<em>\d+):(?P<es>\d+)', args.time_range) 
+
+        if not m:
+            logging.EERROR("Usage: --time-range START-END Where: TIMEFMT hh:mm:ss-hh:mm:ss");
+            sys.exit(-1)
+        #compute number of seconds 
+        seconds_start = 0
+        seconds_end   = 0
+
+        if m.group('sh'): 
+            seconds_start+=int(m['sh'])*3600
+        if m.group('eh'):
+            seconds_end  +=int(m['eh'])*3600 
+
+        seconds_start+=int(m['sm'])*60
+        seconds_end  +=int(m['em'])*60
+
+        seconds_start+=int(m['ss'])
+        seconds_end  +=int(m['es'])
+
+        tRange=f'*{seconds_start}-{seconds_end}'
+        logging.debug(f'Timerange is *{tRange}')
+        cmd1+= ['--download-sections',f'{tRange}'] 
+
+    #Indentation line
+    if args.keep_video: 
+        cmd1.append('--keep-video')
+
+    #    cmd1+=(--merge-output-format mp4)
+    #cmd1+=(--force-overwrite)
+    #cmd1+=(--remux-video mp4)
+    #cmd1+=( "$@" )
+    #cmd1+=(-o)
+    #cmd1+=($tmpfile)
+    #cmd1+=($url)
+
+    cmd1+=['--merge-output-format','mp4']
+    cmd1.append('--force-overwrite')
+    cmd1+=['--remux-video','mp4']
+    cmd1+=['-o',f'{fTemp}']
+    cmd1.append(f'{args.url}') 
+
+    ytdlp = Popen(cmd1,
+                stderr=subprocess.STDOUT, 
+                stdout=subprocess.PIPE, 
+                universal_newlines=True)
+
+    logging.info(f'Executing: {ytdlp.argstr}')
+    for line in  ytdlp.stdout.readlines():
+        logging.info(re.sub('\n',r'',line))
+
+    cmd2 = list() 
+    
+    cmd2.append(f'ffmpeg')
+    cmd2+=['-i',f'{fTemp}']
+    cmd2+=['-vcodec','h264_nvenc']
+    cmd2+=['-y',f'{args.output}']
+
+    #indentation line 
+    ffmpeg = Popen(cmd2,
+                stderr=subprocess.STDOUT, 
+                stdout=subprocess.PIPE, 
+                universal_newlines=True)
+    
+    logging.info(f'Executing: {ffmpeg.argstr}')
+    for line in ffmpeg.stdout.readlines():
+        logging.info(re.sub('\n',r'',line))
+
+    if not args.keep_video: 
+        os.remove(fTemp)
+
+    
+
+    
+
+
+
+ 
+
