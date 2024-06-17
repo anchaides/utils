@@ -1,16 +1,16 @@
 pkgname=anchaides-utils
-pkgver=1.1
-pkgrel=1
+pkgver=rc1.1
+pkgrel=2
 metaname=utils-meta 
-metatag=1.03
+metatag=rc1.1 
 # https://github.com/anchaides/utils-meta/archive/refs/tags/v1.03.tar.gz
 pkgdesc="helper utils and scripts I have made over time" 
 arch=('x86_64')
 url="https://github.com/anchaides/utils"
 license=('GPL')
-source=("$metaname-v$metatag.tar.gz::https://github.com/anchaides/utils-meta/archive/refs/tags/v$metatag.tar.gz"
+source=("$metaname-$metatag.tar.gz::https://github.com/anchaides/utils-meta/archive/refs/tags/$metatag.tar.gz"
 )
-sha256sums=('d0bd25ea1dda75ca4b80a555d19daaca7f6ef4d21e2f0a5e46a387e5df8c6f0d')
+sha256sums=('2489a515971e5fe197fce3a6e9777869f5dbf8e31f764c8e5b9a4d2bb2d4de11')
 
 build() {
     cd $srcdir 
