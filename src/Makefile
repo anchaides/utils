@@ -1,8 +1,8 @@
 # Define the build destination variable (relative to the top-level directory)
-INSTALL_DIR ?= ../bin 
+INSTALL_DIR ?=usr/bin 
 
 # Get the list of subdirectories
-SUBDIRS := $(wildcard */)
+SUBDIRS := $(shell find . -maxdepth 1 -mindepth 1 -type d -exec test -e {}/Makefile \; -print)
 
 .PHONY: all $(SUBDIRS)
 
@@ -13,3 +13,5 @@ all: $(SUBDIRS)
 $(SUBDIRS):
 	$(MAKE) -C $@ INSTALL_DIR=$(abspath $(INSTALL_DIR))
 
+print-subdirs:
+	@echo $(SUBDIRS)
