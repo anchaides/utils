@@ -1,4 +1,8 @@
 *.tar.zst
+*.tar.zst.asc
 *.tar.gz
 src/utils-meta*/
+src/.* 
 pkg/
+src/usr/
+*.log 
