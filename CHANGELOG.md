@@ -1,7 +1,7 @@
 # Changelog 
 
-## 1.2-0 (2024-06-22)
+## [1.2-0](https://github.com/anchaides/utils/tree/1.2) (2024-06-22)
 
-** New feature **
+**New feature**
 
 - Project now tracking changes.
