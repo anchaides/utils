@@ -1,5 +1,5 @@
 pkgname=anchaides-utils
-pkgver=r42
+pkgver=1.2
 pkgrel=1
 metanam=utils-meta 
 metaver=1.2
