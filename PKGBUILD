@@ -2,7 +2,7 @@ pkgname=anchaides-utils
 pkgver=1.2
 pkgrel=0
 metanam=utils-meta 
-metaver=1.1
+metaver=1.2
 metarel=2
 # https://github.com/anchaides/utils-meta/archive/refs/tags/v1.03.tar.gz
 pkgdesc="helper utils and scripts I have made over time" 
