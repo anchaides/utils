@@ -1,8 +1,12 @@
+src/.BUILDINFO
+src/.MTREE
+src/.PKGINFO
+
 *.tar.zst
 *.tar.zst.asc
 *.tar.gz
 src/utils-meta*/
-src/.* 
 pkg/
-src/usr/
+src/usr/bin
+src/usr/share/doc/anchaides-utils
 *.log 
