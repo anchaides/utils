@@ -15,6 +15,7 @@ echo shmem is:  $shmem
 
 logfile="/tmp/looking-glass_$(short_date).log"
 echo "Generating logfile... $logfile"
-looking-glass-client -p $port -f /dev/shm/$shmem > $logfile 2>&1 &
+echo "DBG Win title is supposed to be $1"
+looking-glass-client -p $port -f /dev/shm/$shmem  win:title="$1" > $logfile 2>&1 &
 echo "Looking Glass PID $!"
 
