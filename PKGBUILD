@@ -1,6 +1,6 @@
 pkgname=anchaides-utils
 pkgver=1.2
-pkgrel=1
+pkgrel=2
 metanam=utils-meta 
 metaver=1.1
 metarel=2
@@ -39,14 +39,6 @@ pkgver() {
     else
         #printf "r%s" "$(git rev-list --count HEAD)"
         echo "$pkgver"
-    fi
-}
-
-pkgrel() {
-    if git rev-parse "v$pkgver-$pkgrel"; then
-        echo "$pkgrel"
-    else
-        echo $((pkgrel + 1))
     fi
 }
 
