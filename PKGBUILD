@@ -1,6 +1,6 @@
 pkgname=anchaides-utils
-pkgver=1.2
-pkgrel=3
+pkgver=1.3
+pkgrel=1
 metanam=utils-meta 
 metaver=1.1
 metarel=2
@@ -33,7 +33,7 @@ build() {
 
 pkgver() {
     branch=$(git symbolic-ref --short -q HEAD )
-    if [[ $branch =~ build_([0-9]+\.[0-9]+)-[0-9]+ ]]; then
+    if [[ $branch =~ ([0-9]+\.[0-9]+) ]]; then
         ver=${BASH_REMATCH[1]} 
         echo "$ver"
     else
