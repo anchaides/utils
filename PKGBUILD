@@ -33,7 +33,7 @@ build() {
 
 pkgver() {
     branch=$(git symbolic-ref --short -q HEAD )
-    if [[ $branch =~ build_([0-9]+\.[0-9]+)-[0-9]+ ]]; then
+    if [[ $branch =~ ([0-9]+\.[0-9]+) ]]; then
         ver=${BASH_REMATCH[1]} 
         echo "$ver"
     else
