@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.3-1](https://github.com/anchaides/utils/tree/1.3-1) (2024-06-24)
+## [1.3-1](https://github.com/anchaides/utils/tree/v1.3-1) (2024-06-24)
 
 **Changes**
 
