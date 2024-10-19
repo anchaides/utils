@@ -7,6 +7,7 @@ import sys
 import logging
 import argparse 
 import subprocess
+import select 
 
 class Popen (subprocess.Popen): 
     @property 
@@ -18,24 +19,51 @@ class LevelFilter(logging.Filter):
         self.levels = levels
 
     def filter(self, record):
-        return record.levelno in self.levels
+        rc = record.levelno in self.levels 
+        return rc
 
 
+def track_output(cmd_proc):
+    while True: 
+        reads = [cmd_proc.stdout.fileno(), cmd_proc.stderr.fileno()]
+        ret = select.select(reads, [], []) 
+        
+        for fd in ret[0]:
+            if fd == cmd_proc.stdout.fileno():
+                line = cmd_proc.stdout.readline() 
+                if line: 
+                    logger.info(re.sub(r'\n$',r'',line))
+
+            elif fd == cmd_proc.stderr.fileno(): 
+                line = cmd_proc.stderr.readline()
+                if line:
+                    logger.info(re.sub(r'\n$',r'',line))
+
+        if cmd_proc.poll() is not None: 
+            break
+
+    for line in iter(cmd_proc.stdout.readline, ''):
+        logger.info(re.sub('\n$',r'',line))
+
+    for line in iter(cmd_proc.stderr.readline, ''):
+        logger.info(re.sub('\n$',r'',line))
+
+    cmd_proc.wait()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Calls Yt-dlp ffmpeg with the most commonly usedf parameters.")
     parser.add_argument('-u', '--url', type=str, help='YouTube URL', required=True)
     parser.add_argument('-t', '--time-range',type=str, help='Timerange in format hh:mm:ss-hh:mm:ss', required=False)
     parser.add_argument('-o','--output',type=str, help='Output filename -- Default: output', required=False, default='output') 
-    parser.add_argument('-d','--debug', action='store_true',help='Enable debug logging') 
+    parser.add_argument('-d','--debug', action='store_true',help='Enable debug logging', default=False) 
     parser.add_argument('-k','--keep-video', action='store_true',help='Keep intermediate files, for DEBUG purposes') 
     parser.add_argument('-v','--verbose', action='store_true',help='Increase log verbosity') 
+    parser.add_argument('-c','--cookies-from-browser', action='store_true',help='Use cookies from browser', dest='cookies') 
 
-    print("Que vaina?") 
     args = parser.parse_args() 
 
-    logging.basicConfig(level=logging.NOTSET) 
     logger = logging.getLogger('ytdln') 
+    logger.handlers = []  # Remove any existing handlers
     
     inffilter = LevelFilter([logging.INFO, logging.DEBUG])
     errfilter = LevelFilter([logging.WARNING, logging.ERROR, logging.CRITICAL])
@@ -43,9 +71,9 @@ if __name__ == '__main__':
     logStreamHandler = logging.StreamHandler(sys.stdout)
     logStreamHandler.addFilter(inffilter) 
 
-    logStreamHStderr = logging.StreamHandler() 
+    logStreamHStderr = logging.StreamHandler(sys.stderr) 
     logStreamHStderr.addFilter(errfilter) 
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(logging.INFO)
 
 
     logStreamHStderr.setFormatter(logging.Formatter('[%(levelname)s] - %(asctime)s %(message)s'))
@@ -53,9 +81,11 @@ if __name__ == '__main__':
     if args.debug:
         logStreamHandler.setLevel(logging.DEBUG) 
         logStreamHandler.setFormatter(logging.Formatter('[%(levelname)s] -%(asctime)s %(message)s'))
+        logger.setLevel(logging.DEBUG)
     else:
         logStreamHandler.setLevel(logging.INFO) 
         logStreamHandler.setFormatter(logging.Formatter('%(message)s'))
+        logger.setLevel(logging.INFO)
 
     logger.addHandler(logStreamHandler) 
     logger.addHandler(logStreamHStderr)  
@@ -63,19 +93,22 @@ if __name__ == '__main__':
     short_date = Popen(['short_date'],
                         stdout=subprocess.PIPE,
                         universal_newlines=True)
-    logging.info(f"Executing: {short_date.argstr}")
+    logger.info(f"Executing: {short_date.argstr}")
     
     for line in short_date.stdout.readlines():
         Date = re.sub(r'\n','',line)
     
 
     fTemp = f"/tmp/tydln-{Date}.mp4" 
-    logging.debug(f"Intermediate log file: {fTemp}")
+    logger.debug(f"Intermediate log file: {fTemp}")
 
     cmd1 = list() 
 
     cmd1.append('yt-dlp')
     
+    if args.cookies: 
+        cmd1+=['--cookies-from-browser','Brave']
+
     if args.verbose: 
         cmd1.append('-v')
 
@@ -86,7 +119,7 @@ if __name__ == '__main__':
         m = re.match(r'(?:(?P<sh>\d+):)?(?P<sm>\d+):(?P<ss>\d+)-(?:(?P<eh>\d+):)?(?P<em>\d+):(?P<es>\d+)', args.time_range) 
 
         if not m:
-            logging.EERROR("Usage: --time-range START-END Where: TIMEFMT hh:mm:ss-hh:mm:ss");
+            logger.EERROR("Usage: --time-range START-END Where: TIMEFMT hh:mm:ss-hh:mm:ss");
             sys.exit(-1)
         #compute number of seconds 
         seconds_start = 0
@@ -104,7 +137,7 @@ if __name__ == '__main__':
         seconds_end  +=int(m['es'])
 
         tRange=f'*{seconds_start}-{seconds_end}'
-        logging.debug(f'Timerange is *{tRange}')
+        logger.debug(f'Timerange is *{tRange}')
         cmd1+= ['--download-sections',f'{tRange}'] 
 
     #Indentation line
@@ -125,14 +158,27 @@ if __name__ == '__main__':
     cmd1+=['-o',f'{fTemp}']
     cmd1.append(f'{args.url}') 
 
-    ytdlp = Popen(cmd1,
-                stderr=subprocess.STDOUT, 
-                stdout=subprocess.PIPE, 
-                universal_newlines=True)
+    env = os.environ.copy()
+    env['TERM'] = 'xterm-256color'  # Ensure the environment supports color
 
-    logging.info(f'Executing: {ytdlp.argstr}')
-    for line in  ytdlp.stdout.readlines():
-        logging.info(re.sub('\n',r'',line))
+    ytdlp = Popen(cmd1,
+                stderr=subprocess.PIPE, 
+                stdout=subprocess.PIPE, 
+                universal_newlines=True,
+                env=env)
+
+    logger.info(f'Executing: {ytdlp.argstr}')
+    logger.info("")
+    logger.info("")
+
+    track_output(ytdlp)
+
+    logger.info("")
+    logger.info("")
+
+    if ytdlp.returncode:
+        logger.error("Finishing execution,") 
+        sys.exit(1)
 
     cmd2 = list() 
     
@@ -143,13 +189,18 @@ if __name__ == '__main__':
 
     #indentation line 
     ffmpeg = Popen(cmd2,
-                stderr=subprocess.STDOUT, 
+                stderr=subprocess.PIPE, 
                 stdout=subprocess.PIPE, 
                 universal_newlines=True)
     
-    logging.info(f'Executing: {ffmpeg.argstr}')
-    for line in ffmpeg.stdout.readlines():
-        logging.info(re.sub('\n',r'',line))
+    logger.info(f'Executing: {ffmpeg.argstr}')
+    logger.info("")
+    logger.info("")
+
+    track_output(ffmpeg)
+
+    logger.info("")
+    logger.info("")
 
     if not args.keep_video: 
         os.remove(fTemp)
