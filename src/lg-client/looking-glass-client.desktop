@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Looking Glass Launcher
+Comment=Lanches Looking Glass for a Running Windows VM 
+Exec=/usr/bin/lg-client $(virsh -c qemu:///system list --name | grep -o "Windows.*" | head -n 11)
+Icon=looking-glass-client
+Terminal=false
+Type=Application 
+Categories=System;Utility;
