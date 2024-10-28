@@ -55,7 +55,7 @@ package() {
         fi 
         
         #for now manually install additional non binary files 
-        install -Dm755 $srcdir/usr/lg-client/looking-glass-client.desktop $pkgdir/usr/share/applications/looking-glass-client.desktop
+        install -Dm755 $srcdir/lg-client/looking-glass-client.desktop $pkgdir/usr/share/applications/looking-glass-client.desktop
         #mkdir -p $pkgdir/usr/share/doc/$pkgname/
         #install -Dm644 $srcdir/CHANGELOG.md "$pkgdir/usr/share/doc/$pkgname/ChangeLog" 
     done 
