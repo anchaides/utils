@@ -1,6 +1,6 @@
 pkgname=anchaides-utils
 pkgver=1.4
-pkgrel=1
+pkgrel=2
 metanam=utils-meta 
 metaver=1.1
 metarel=8
@@ -53,6 +53,9 @@ package() {
              install -Dm755 $bin  "$pkgdir/usr/bin/${bin##*/}" 
 
         fi 
+        
+        #for now manually install additional non binary files 
+        install -Dm755 $srcdir/lg-client/looking-glass-client.desktop $pkgdir/usr/share/applications/looking-glass-client.desktop
         #mkdir -p $pkgdir/usr/share/doc/$pkgname/
         #install -Dm644 $srcdir/CHANGELOG.md "$pkgdir/usr/share/doc/$pkgname/ChangeLog" 
     done 
