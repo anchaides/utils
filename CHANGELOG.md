@@ -1,8 +1,8 @@
 # Changelog
 
-## [1.3-5](https://github.com/anchaides/utils/tree/v1.3-5) (2024-10-24)
+## [1.4-1](https://github.com/anchaides/utils/tree/v1.4-1) (2024-10-28)
 
 **Changes**
 
-- Looking Glass compiled for wayland
+- anchaides-meta is now a dependency and part of the pipeline
 
