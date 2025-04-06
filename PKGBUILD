@@ -1,6 +1,6 @@
 pkgname=anchaides-utils
 pkgver=1.4
-pkgrel=4
+pkgrel=5
 metanam=utils-meta 
 metaver=1.1
 metarel=8
@@ -20,14 +20,14 @@ license=('GPL')
 #            )
 
 validpgpkeys=('E807522FC5E58C299212FA90B20C037A4409DF78')
-depends=("anchaides-meta>=$metaver-$metarel")
+depends=("anchaides-meta>=$metaver" "python-evdev" )
 changelog=CHANGELOG.md 
 build() {
 
     #sudo pacman -U $metanam-$metaver-$metarel-$arch.pkg.tar.zst --noconfirm 
     echo $PWD
     echo realpath $srcdir 
-    mkdir -p "$srcdir/usr/bin"
+    mkdir -p "$srcdir"
     cd "$srcdir"
     #cp ../$changelog  $srcdir/usr/share/doc/$pkgname/ChangeLog 
 
@@ -47,17 +47,23 @@ pkgver() {
 
 package() { 
 
-    for bin in $srcdir/usr/bin/*; do 
-        if [[ -f "$bin" ]]; then
-             echo install -Dm755 $bin  "$pkgdir/usr/bin/${bin##*/}" 
-             install -Dm755 $bin  "$pkgdir/usr/bin/${bin##*/}" 
+    find "$srcdir/build" -type f | while read -r file; do
+        relpath="${file#$srcdir/build/}"
+        target="$pkgdir/$relpath"
 
-        fi 
-        
+    if [[ "$relpath" == */bin/* || "$relpath" == *.py || "$relpath" == *.bin || "$relpath" == *.pl || "$relpath" == *.sh ]]; then
+        mode=755
+    else
+        mode=644
+    fi
+
+        echo "Installing $relpath to $target"
+        install -Dm"$mode" "$file" "$target"
+    done
+
         #for now manually install additional non binary files 
         install -Dm755 $srcdir/lg-client/looking-glass-client.desktop $pkgdir/usr/share/applications/looking-glass-client.desktop
         #mkdir -p $pkgdir/usr/share/doc/$pkgname/
         #install -Dm644 $srcdir/CHANGELOG.md "$pkgdir/usr/share/doc/$pkgname/ChangeLog" 
-    done 
 }
 
