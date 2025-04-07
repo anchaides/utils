@@ -65,6 +65,9 @@ REMOTE_COMMAND_M = "cat > /dev/hidg1"
 keyboard = InputDevice('/dev/input/event8')
 mouse = InputDevice('/dev/input/event4')
 
+#remote_cursor = (0, 0)  # Start at top-left for remote
+#local_cursor  = (0, 0)  # Optional: you can track local for logging or toggling
+
 sshkb = subprocess.Popen(["ssh","-i" ,IDENTITY_FILE , PI_HOST_KB, REMOTE_COMMAND_KB], stdin=subprocess.PIPE)
 sshm = subprocess.Popen(["ssh","-i" ,IDENTITY_FILE , PI_HOST_M, REMOTE_COMMAND_M], stdin=subprocess.PIPE)
 
@@ -178,35 +181,73 @@ def keyboard_thread():
                 print("KEYBOARD WRITE FAILED,",e);
                 raise RuntimeError("Mouse thread failed to write exiting") 
 
+
 def mouse_thread():
     buttons = 0
-    dx = dy = 0
-    for event in mouse.read_loop():
-        if event.type == ecodes.EV_KEY:
-            if event.code == ecodes.BTN_LEFT:
-                buttons = buttons | 0x01 if event.value else buttons & ~0x01
-            elif event.code == ecodes.BTN_RIGHT:
-                buttons = buttons | 0x02 if event.value else buttons & ~0x02
-            elif event.code == ecodes.BTN_MIDDLE:
-                buttons = buttons | 0x04 if event.value else buttons & ~0x04
-            if tfsm.grabbed and sshm and sshm.stdin:
-                report = bytearray([buttons, 0, 0])
-                sshm.stdin.write(report)
-                sshm.stdin.flush()
-        elif event.type == ecodes.EV_REL:
-            if event.code == ecodes.REL_X:
-                dx += event.value
-            elif event.code == ecodes.REL_Y:
-                dy += event.value
-            if tfsm.grabbed and sshm and sshm.stdin:
-                report = bytearray([buttons, dx & 0xFF, dy & 0xFF])
-                try:
-                    sshm.stdin.write(report)
-                    sshm.stdin.flush()
-                except Exception as e:
-                    print("Mouse write failed:", e)
-                    raise RuntimeError("Mouse thread failed to write exiting") 
-            dx = dy = 0
+    dx = dy = wheel = 0
+    remote_cursor = [0, 0]
+    event_counter = 0
+    max_events = 5  # Change this to control smoothing/batching
+    scroll_thresh = 10
+
+    while True:
+        try:
+            for event in mouse.read_loop():
+                if event.type == ecodes.EV_KEY:
+                    wheel = 0 
+                    if event.code == ecodes.BTN_LEFT:
+                        buttons = buttons | 0x01 if event.value else buttons & ~0x01
+                    elif event.code == ecodes.BTN_RIGHT:
+                        buttons = buttons | 0x02 if event.value else buttons & ~0x02
+                    elif event.code == ecodes.BTN_MIDDLE:
+                        buttons = buttons | 0x04 if event.value else buttons & ~0x04
+
+                elif event.type == ecodes.EV_REL:
+                    if event.code == ecodes.REL_X:
+                        dx += event.value * 7
+                        wheel = 0 
+                    elif event.code == ecodes.REL_Y:
+                        dy += event.value * 7
+                        wheel = 0 
+                    elif event.code == ecodes.REL_WHEEL:
+                        wheel += event.value 
+
+                event_counter += 1
+
+                # When threshold reached, send update
+                if event_counter >= max_events and tfsm.grabbed and sshm and sshm.stdin:
+                    remote_cursor[0] = max(0, min(32767, remote_cursor[0] + dx))
+                    remote_cursor[1] = max(0, min(32767, remote_cursor[1] + dy))
+
+                    wheel_byte = wheel & 0xFF if wheel >= 0 else (256 + wheel)
+
+                    report = bytearray([
+                        buttons,
+                        remote_cursor[0] & 0xFF,
+                        (remote_cursor[0] >> 8) & 0xFF,
+                        remote_cursor[1] & 0xFF,
+                        (remote_cursor[1] >> 8) & 0xFF,
+                        wheel & 0xFF,
+                        0x00 
+                    ])
+
+                    try:
+                        sshm.stdin.write(report)
+                        sshm.stdin.flush()
+                        wheel = 0 
+                        print("Report (hex):", report.hex())
+                        print(f"Report is Buttons = {buttons:02x} Cursor = ({remote_cursor[0]:04x},{remote_cursor[1]:04x})  wheel = {wheel:02x}")
+                    except Exception as e:
+                        print("Mouse write failed:", e)
+                        #raise RuntimeError("Mouse thread failed to write")
+
+                    dx = dy = wheel = 0
+                    event_counter = 0
+
+        except Exception as e:
+            print("Exception in mouse_thread:", e)
+            raise RuntimeError("Mouse thread crashed")
+
 
 try:
     kbd_thread = threading.Thread(target=keyboard_thread, daemon=True)
