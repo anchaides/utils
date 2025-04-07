@@ -1,9 +1,5 @@
 pkgname=anchaides-utils
-<<<<<<< HEAD
-pkgver=1.4
-=======
 pkgver=1.5
->>>>>>> input_forwarder-987316
 pkgrel=7
 metanam=utils-meta 
 metaver=1.2
