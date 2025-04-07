@@ -228,7 +228,6 @@ def mouse_thread():
                         remote_cursor[1] & 0xFF,
                         (remote_cursor[1] >> 8) & 0xFF,
                         wheel & 0xFF,
-                        0x00 
                     ])
 
                     try:
