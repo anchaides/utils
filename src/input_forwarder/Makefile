@@ -2,7 +2,7 @@ DIRNAME := $(shell basename $(shell dirname $(realpath $(lastword $(MAKEFILE_LIS
 
 TARGET:=$(INSTALL_DIR)/usr/bin/input_forwarder
 .phony: all clean 
-all: input_forwarder 
+all: $(TARGET)
 
 $(TARGET): input_forwarder.py   
 	mkdir -p $(INSTALL_DIR)/usr/bin
