@@ -5,6 +5,7 @@ INSTALL_SUBDIR ?= $(INSTALL_DIR)/usr/bin
 all: $(INSTALL_SUBDIR)/$(DIRNAME) 
 
 $(INSTALL_SUBDIR)/$(DIRNAME): $(DIRNAME)   
+	mkdir -p $(INSTALL_SUBDIR)
 	cp $< $@ 
 
 clean: 

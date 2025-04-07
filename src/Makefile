@@ -1,5 +1,5 @@
 # Define the build destination variable (relative to the top-level directory)
-INSTALL_DIR ?=./build
+INSTALL_DIR ?=../build
 
 # Get the list of subdirectories
 SUBDIRS := $(shell find . -maxdepth 1 -mindepth 1 -type d -exec test -e {}/Makefile \; -print)

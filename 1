@@ -1,6 +1,6 @@
 pkgname=anchaides-utils
 pkgver=1.4
-pkgrel=6
+pkgrel=4
 metanam=utils-meta 
 metaver=1.1
 metarel=8
@@ -47,13 +47,9 @@ pkgver() {
 
 package() { 
 
-    pwd
-    find "../build" -type f | while read -r file; do
-        echo $file 
-        relpath="${file#..\/build/}"
-        echo "relpath is $relpath" 
+    find "$srcdir/build" -type f | while read -r file; do
+        relpath="${file#$srcdir/build/}"
         target="$pkgdir/$relpath"
-        echo "Target is $target" 
 
     if [[ "$relpath" == */bin/* || "$relpath" == *.py || "$relpath" == *.bin || "$relpath" == *.pl || "$relpath" == *.sh ]]; then
         mode=755

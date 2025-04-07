@@ -1,0 +1,158 @@
+diff --cc PKGBUILD
+index 93142f7,5597e29..0000000
+--- a/PKGBUILD
++++ b/PKGBUILD
+@@@ -47,9 -47,13 +47,19 @@@ pkgver() 
+  
+  package() { 
+  
+++<<<<<<< HEAD
+ +    find "$srcdir/build" -type f | while read -r file; do
+ +        relpath="${file#$srcdir/build/}"
+ +        target="$pkgdir/$relpath"
+++=======
++     pwd
++     find "../build" -type f | while read -r file; do
++         echo $file 
++         relpath="${file#..\/build/}"
++         echo "relpath is $relpath" 
++         target="$pkgdir/$relpath"
++         echo "Target is $target" 
+++>>>>>>> complexity_upgrade-984857
+  
+      if [[ "$relpath" == */bin/* || "$relpath" == *.py || "$relpath" == *.bin || "$relpath" == *.pl || "$relpath" == *.sh ]]; then
+          mode=755
+diff --cc src/Makefile
+index 9e77cfa,bae9319..0000000
+--- a/src/Makefile
++++ b/src/Makefile
+@@@ -1,5 -1,5 +1,9 @@@
+  # Define the build destination variable (relative to the top-level directory)
+++<<<<<<< HEAD
+ +INSTALL_DIR ?=./build
+++=======
++ INSTALL_DIR ?=../build
+++>>>>>>> complexity_upgrade-984857
+  
+  # Get the list of subdirectories
+  SUBDIRS := $(shell find . -maxdepth 1 -mindepth 1 -type d -exec test -e {}/Makefile \; -print)
+diff --cc src/flatget/Makefile
+index 4f3b3f9,7e9d222..0000000
+--- a/src/flatget/Makefile
++++ b/src/flatget/Makefile
+@@@ -5,6 -5,7 +5,10 @@@ INSTALL_SUBDIR ?= $(INSTALL_DIR)/usr/bi
+  all: $(INSTALL_SUBDIR)/$(DIRNAME) 
+  
+  $(INSTALL_SUBDIR)/$(DIRNAME): $(DIRNAME)   
+++<<<<<<< HEAD
+++=======
++ 	mkdir -p $(INSTALL_SUBDIR)
+++>>>>>>> complexity_upgrade-984857
+  	cp $< $@ 
+  
+  clean: 
+diff --cc src/flatrun/Makefile
+index 4f3b3f9,7e9d222..0000000
+--- a/src/flatrun/Makefile
++++ b/src/flatrun/Makefile
+@@@ -5,6 -5,7 +5,10 @@@ INSTALL_SUBDIR ?= $(INSTALL_DIR)/usr/bi
+  all: $(INSTALL_SUBDIR)/$(DIRNAME) 
+  
+  $(INSTALL_SUBDIR)/$(DIRNAME): $(DIRNAME)   
+++<<<<<<< HEAD
+++=======
++ 	mkdir -p $(INSTALL_SUBDIR)
+++>>>>>>> complexity_upgrade-984857
+  	cp $< $@ 
+  
+  clean: 
+diff --cc src/lg-client/Makefile
+index 4f3b3f9,7e9d222..0000000
+--- a/src/lg-client/Makefile
++++ b/src/lg-client/Makefile
+@@@ -5,6 -5,7 +5,10 @@@ INSTALL_SUBDIR ?= $(INSTALL_DIR)/usr/bi
+  all: $(INSTALL_SUBDIR)/$(DIRNAME) 
+  
+  $(INSTALL_SUBDIR)/$(DIRNAME): $(DIRNAME)   
+++<<<<<<< HEAD
+++=======
++ 	mkdir -p $(INSTALL_SUBDIR)
+++>>>>>>> complexity_upgrade-984857
+  	cp $< $@ 
+  
+  clean: 
+diff --cc src/rebind_usb/Makefile
+index 4f3b3f9,7e9d222..0000000
+--- a/src/rebind_usb/Makefile
++++ b/src/rebind_usb/Makefile
+@@@ -5,6 -5,7 +5,10 @@@ INSTALL_SUBDIR ?= $(INSTALL_DIR)/usr/bi
+  all: $(INSTALL_SUBDIR)/$(DIRNAME) 
+  
+  $(INSTALL_SUBDIR)/$(DIRNAME): $(DIRNAME)   
+++<<<<<<< HEAD
+++=======
++ 	mkdir -p $(INSTALL_SUBDIR)
+++>>>>>>> complexity_upgrade-984857
+  	cp $< $@ 
+  
+  clean: 
+diff --cc src/short_date/Makefile
+index 4f3b3f9,7e9d222..0000000
+--- a/src/short_date/Makefile
++++ b/src/short_date/Makefile
+@@@ -5,6 -5,7 +5,10 @@@ INSTALL_SUBDIR ?= $(INSTALL_DIR)/usr/bi
+  all: $(INSTALL_SUBDIR)/$(DIRNAME) 
+  
+  $(INSTALL_SUBDIR)/$(DIRNAME): $(DIRNAME)   
+++<<<<<<< HEAD
+++=======
++ 	mkdir -p $(INSTALL_SUBDIR)
+++>>>>>>> complexity_upgrade-984857
+  	cp $< $@ 
+  
+  clean: 
+diff --cc src/suggest-pass/Makefile
+index 4f3b3f9,7e9d222..0000000
+--- a/src/suggest-pass/Makefile
++++ b/src/suggest-pass/Makefile
+@@@ -5,6 -5,7 +5,10 @@@ INSTALL_SUBDIR ?= $(INSTALL_DIR)/usr/bi
+  all: $(INSTALL_SUBDIR)/$(DIRNAME) 
+  
+  $(INSTALL_SUBDIR)/$(DIRNAME): $(DIRNAME)   
+++<<<<<<< HEAD
+++=======
++ 	mkdir -p $(INSTALL_SUBDIR)
+++>>>>>>> complexity_upgrade-984857
+  	cp $< $@ 
+  
+  clean: 
+diff --cc src/unbind_usb/Makefile
+index 4f3b3f9,7e9d222..0000000
+--- a/src/unbind_usb/Makefile
++++ b/src/unbind_usb/Makefile
+@@@ -5,6 -5,7 +5,10 @@@ INSTALL_SUBDIR ?= $(INSTALL_DIR)/usr/bi
+  all: $(INSTALL_SUBDIR)/$(DIRNAME) 
+  
+  $(INSTALL_SUBDIR)/$(DIRNAME): $(DIRNAME)   
+++<<<<<<< HEAD
+++=======
++ 	mkdir -p $(INSTALL_SUBDIR)
+++>>>>>>> complexity_upgrade-984857
+  	cp $< $@ 
+  
+  clean: 
+diff --cc src/ytdln/Makefile
+index 4f3b3f9,7e9d222..0000000
+--- a/src/ytdln/Makefile
++++ b/src/ytdln/Makefile
+@@@ -5,6 -5,7 +5,10 @@@ INSTALL_SUBDIR ?= $(INSTALL_DIR)/usr/bi
+  all: $(INSTALL_SUBDIR)/$(DIRNAME) 
+  
+  $(INSTALL_SUBDIR)/$(DIRNAME): $(DIRNAME)   
+++<<<<<<< HEAD
+++=======
++ 	mkdir -p $(INSTALL_SUBDIR)
+++>>>>>>> complexity_upgrade-984857
+  	cp $< $@ 
+  
+  clean: 
