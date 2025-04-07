@@ -2,7 +2,7 @@ pkgname=anchaides-utils
 pkgver=1.4
 pkgrel=6
 metanam=utils-meta 
-metaver=1.1
+metaver=1.2
 metarel=8
 # https://github.com/anchaides/utils-meta/archive/refs/tags/v1.03.tar.gz
 pkgdesc="helper utils and scripts I have made over time" 
@@ -20,7 +20,7 @@ license=('GPL')
 #            )
 
 validpgpkeys=('E807522FC5E58C299212FA90B20C037A4409DF78')
-depends=("anchaides-meta>=$metaver" "python-evdev" )
+depends=("anchaides-meta>=$metaver" "python-evdev" "python" )
 changelog=CHANGELOG.md 
 build() {
 

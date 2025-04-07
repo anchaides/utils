@@ -1,0 +1,15 @@
+[Unit]
+Description=Input Forwarder (HID control to Pi)
+After=graphical-session.target
+
+[Service]
+Type=simple
+#ExecStart=%h/.local/bin/input_forwarder.py
+ExecStart=/usr/bin/env bash -c 'XDG_RUNTIME_DIR=/run/user/$(id -u) ~/.local/bin/input_forwarder.py'
+Restart=on-failure
+Environment=DISPLAY=:0
+Environment=XDG_RUNTIME_DIR=%h/.runtime-dir
+
+[Install]
+WantedBy=default.target
+
