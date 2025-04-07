@@ -152,16 +152,18 @@ def keyboard_thread():
             #print(f"Code found on linux_to_hdi {ecodes.KEY[code]}") 
             hid_code = linux_to_hid[code]
             if value == 1:
-                pressed_keys.add(hid_code)
-
                 if code == ecodes.KEY_PAUSE:
                     tfsm.key2 = True
+                else: 
+                    pressed_keys.add(hid_code)
+
 
             elif value == 0:
-                pressed_keys.discard(hid_code)
-
                 if code == ecodes.KEY_PAUSE:
                     tfsm.key2 = False
+                else:
+                    pressed_keys.discard(hid_code)
+
 
         else: 
             print(f"Code not found on linux_to_hdi map {ecodes.KEY[code]}")
@@ -193,6 +195,7 @@ def mouse_thread():
                 report = bytearray([buttons, 0, 0])
                 sshm.stdin.write(report)
                 sshm.stdin.flush()
+
         elif event.type == ecodes.EV_REL:
             if event.code == ecodes.REL_X:
                 dx += event.value
