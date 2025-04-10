@@ -7,7 +7,8 @@ import sys
 import os
 
 from enum import Enum
-from evdev import ecodes, InputDevice
+from evdev import ecodes, InputDevice, list_devices
+import re 
 
 class TFSM_STATE(Enum):
     IDLE = 0
@@ -57,23 +58,36 @@ modifier_mask = {
 
 IDENTITY_FILE = "~/.ssh/id_rsa"
 
-PI_HOST_KB = "hidk@rpi02w"
+PI_HOST_KB = "hidk@pi-hid"
 REMOTE_COMMAND_KB = "cat > /dev/hidg0"
-PI_HOST_M = "hidm@rpi02w"
+PI_HOST_M = "hidm@pi-hid"
 REMOTE_COMMAND_M = "cat > /dev/hidg1"
 
-keyboard = InputDevice('/dev/input/event8')
-mouse = InputDevice('/dev/input/event4')
+#keyboard = InputDevice('/dev/input/event11')
+#mouse =    InputDevice('/dev/input/event23')
 
 sshkb = subprocess.Popen(["ssh","-i" ,IDENTITY_FILE , PI_HOST_KB, REMOTE_COMMAND_KB], stdin=subprocess.PIPE)
 sshm = subprocess.Popen(["ssh","-i" ,IDENTITY_FILE , PI_HOST_M, REMOTE_COMMAND_M], stdin=subprocess.PIPE)
 
 class TFSM:
-    def __init__(self):
+    def __init__(self) :
         self._state = TFSM_STATE.IDLE
         self._key1 = False
         self._key2 = False
+        self._release = False 
         self._grabbed = False
+
+    @property 
+    def release(self): 
+        if (self._release):
+            self._release = False 
+            return True
+        else: 
+            return False
+    
+    @release.setter
+    def release(self, value): 
+        self._release = value 
 
     @property
     def grabbed(self):
@@ -121,7 +135,8 @@ class TFSM:
                     print("Un-grabbing devices")
                     keyboard.ungrab()
                     mouse.ungrab()
-                    self.grabbed = False
+                    self.grabbed = False 
+                    self.release = True 
                 else:
                     print("Grabbing devices")
                     keyboard.grab()
@@ -131,8 +146,39 @@ class TFSM:
 tfsm = TFSM()
 pressed_keys = set()
 
-def keyboard_thread():
+def is_keyboard(device):
+    try:
+        #m = re.fullmatch(r"SINO WEALTH Gaming KB\s*",device.name, flags=0)
+        #if not m:
+            #return False
+        if (os.getenv("KEYBOARD") != device.name.strip()): 
+            return False 
+        capabilities = device.capabilities()
+        keys = capabilities.get(ecodes.EV_KEY, [])
+        return ecodes.KEY_A in keys and ecodes.KEY_Z in keys
+    except Exception:
+        return False
+
+def is_mouse(device):
+    try:
+        #print(f" Checking for: {device.name.strip()}") 
+        if ( os.getenv("MOUSE")  !=  device.name.strip()):
+            #print("Skip") 
+            return False
+        capabilities = device.capabilities()
+        rel = capabilities.get(ecodes.EV_REL, [])
+        btns = capabilities.get(ecodes.EV_KEY, [])
+        return ecodes.REL_X in rel and ecodes.BTN_LEFT in btns
+    except Exception:
+        return False
+
+keyboards = []
+mice = []
+
+def keyboard_thread(keyboard,mouse):
     modifiers = 0
+
+
     for event in keyboard.read_loop():
         if event.type != ecodes.EV_KEY:
             continue
@@ -160,7 +206,7 @@ def keyboard_thread():
 
             elif value == 0:
                 if code == ecodes.KEY_PAUSE:
-                    tfsm.key2 = False
+                    tfsm.key2 = False 
                 else:
                     pressed_keys.discard(hid_code)
 
@@ -168,8 +214,20 @@ def keyboard_thread():
         else: 
             print(f"Code not found on linux_to_hdi map {ecodes.KEY[code]}")
 
+        report = bytearray(8)
+
+        if tfsm.release: 
+            report[0] = 0 
+            for i in range(2,8): 
+                report[i] = 0 
+            try: 
+                sshkb.stdin.write(report)
+                sshkb.stdin.flush()
+            except Exception as e: 
+                print("KEYBOARD WRITE FAILED,",e);
+                raise RuntimeError("Mouse thread failed to write exiting") 
+        
         if tfsm.grabbed and sshkb and sshkb.stdin:
-            report = bytearray(8)
             report[0] = modifiers
             for i, key in enumerate(sorted(pressed_keys)[:6]):
                 report[2 + i] = key
@@ -180,9 +238,10 @@ def keyboard_thread():
                 print("KEYBOARD WRITE FAILED,",e);
                 raise RuntimeError("Mouse thread failed to write exiting") 
 
-def mouse_thread():
+def mouse_thread(mouse):
     buttons = 0
     dx = dy = 0
+
     for event in mouse.read_loop():
         if event.type == ecodes.EV_KEY:
             if event.code == ecodes.BTN_LEFT:
@@ -212,8 +271,24 @@ def mouse_thread():
             dx = dy = 0
 
 try:
-    kbd_thread = threading.Thread(target=keyboard_thread, daemon=True)
-    m_thread   = threading.Thread(target=mouse_thread, daemon=True)
+    for path in list_devices(): 
+        dev = InputDevice(path)
+
+        if is_keyboard(dev):
+            keyboards.append(dev) 
+
+        if is_mouse(dev): 
+            mice.append(dev)
+
+  
+    keyboard = keyboards[0]
+    mouse = mice[0]
+
+    print(f"Keyboard found {keyboard.name} {keyboard.path}") 
+    print(f"Mouse found {mouse.name} {mouse.path}") 
+
+    kbd_thread = threading.Thread(target=keyboard_thread, daemon=True, args=(keyboard,mouse,))
+    m_thread   = threading.Thread(target=mouse_thread, daemon=True, args=(mouse,))
 
     kbd_thread.start() 
     m_thread.start() 

@@ -4,8 +4,9 @@ After=graphical-session.target
 
 [Service]
 Type=simple
-#ExecStart=%h/.local/bin/input_forwarder.py
-ExecStart=/usr/bin/env bash -c 'XDG_RUNTIME_DIR=/run/user/$(id -u) ~/.local/bin/input_forwarder.py'
+Environment="KEYBOARD=SINO WEALTH Gaming KB"
+Environment="MOUSE=Razer Razer Viper"
+ExecStart=/usr/bin/env bash -c 'XDG_RUNTIME_DIR=/run/user/$(id -u) /usr/bin/input_forwarder'
 Restart=on-failure
 Environment=DISPLAY=:0
 Environment=XDG_RUNTIME_DIR=%h/.runtime-dir
