@@ -10,6 +10,8 @@ ExecStart=/usr/bin/env bash -c 'XDG_RUNTIME_DIR=/run/user/$(id -u) /usr/bin/inpu
 Restart=on-failure
 Environment=DISPLAY=:0
 Environment=XDG_RUNTIME_DIR=%h/.runtime-dir
+StandardOutput=journal
+StandardError=journal
 
 [Install]
 WantedBy=default.target
