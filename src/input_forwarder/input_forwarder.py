@@ -151,6 +151,7 @@ def is_keyboard(device):
         #m = re.fullmatch(r"SINO WEALTH Gaming KB\s*",device.name, flags=0)
         #if not m:
             #return False
+        #if (os.getenv("KEYBOARD") != device.name.strip()): 
         if (os.getenv("KEYBOARD") != device.name.strip()): 
             return False 
         capabilities = device.capabilities()
@@ -241,6 +242,7 @@ def keyboard_thread(keyboard,mouse):
 def mouse_thread(mouse):
     buttons = 0
     dx = dy = 0
+    wheel   = 0 
 
     for event in mouse.read_loop():
         if event.type == ecodes.EV_KEY:
@@ -251,7 +253,7 @@ def mouse_thread(mouse):
             elif event.code == ecodes.BTN_MIDDLE:
                 buttons = buttons | 0x04 if event.value else buttons & ~0x04
             if tfsm.grabbed and sshm and sshm.stdin:
-                report = bytearray([buttons, 0, 0])
+                report = bytearray([buttons, 0, 0, 0])
                 sshm.stdin.write(report)
                 sshm.stdin.flush()
 
@@ -260,8 +262,11 @@ def mouse_thread(mouse):
                 dx += event.value
             elif event.code == ecodes.REL_Y:
                 dy += event.value
+            elif event.code == ecodes.REL_WHEEL: 
+                wheel += event.value 
+                
             if tfsm.grabbed and sshm and sshm.stdin:
-                report = bytearray([buttons, dx & 0xFF, dy & 0xFF])
+                report = bytearray([buttons, dx & 0xFF, dy & 0xFF, wheel & 0xFF])
                 try:
                     sshm.stdin.write(report)
                     sshm.stdin.flush()
@@ -269,6 +274,7 @@ def mouse_thread(mouse):
                     print("Mouse write failed:", e)
                     raise RuntimeError("Mouse thread failed to write exiting") 
             dx = dy = 0
+            wheel = 0 
 
 try:
     for path in list_devices(): 
