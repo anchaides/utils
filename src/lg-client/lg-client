@@ -16,6 +16,6 @@ echo shmem is:  $shmem
 logfile="/tmp/looking-glass_$(short_date).log"
 echo "Generating logfile... $logfile"
 echo "DBG Win title: $1"
-looking-glass-client -p $port -f /dev/kvmfr0  win:title="$1" > $logfile 2>&1 &
+__NV_DISABLE_EXPLICIT_SYNC=1 looking-glass-client -p $port -f /dev/kvmfr0  win:title="$1" > $logfile 2>&1 &
 echo "Looking Glass PID $!"
 
