@@ -24,6 +24,8 @@ depends=("anchaides-meta>=$metaver" "python-evdev" "python" )
 changelog=CHANGELOG.md 
 build() {
 
+    #Corrupt package
+    #Corrupt package
     #sudo pacman -U $metanam-$metaver-$metarel-$arch.pkg.tar.zst --noconfirm 
     echo $PWD
     echo realpath $srcdir 
